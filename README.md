@@ -1,6 +1,8 @@
 # @j-token/easy-opencode
 
-OpenCode plugin providing **LSP (11 tools)** + **AST-grep (2 tools)**. No agent orchestration, no background tasks.
+OpenCode plugin providing **11 LSP tools** + **2 AST-grep tools**.
+
+No agent orchestration, no background tasks.
 
 ## Install
 
@@ -11,7 +13,7 @@ cd ~/.config/opencode
 bun add @j-token/easy-opencode
 ```
 
-2) Enable plugin in `~/.config/opencode/opencode.json`:
+2) Enable the plugin in `~/.config/opencode/opencode.json`:
 
 ```json
 {
@@ -22,12 +24,13 @@ bun add @j-token/easy-opencode
 ## Configure
 
 Create one of:
+
 - Project: `.opencode/easy-opencode.jsonc`
 - User: `~/.config/opencode/easy-opencode.jsonc`
 
 Project config overrides user config.
 
-### JSON Schema (document)
+### JSON Schema (reference)
 
 `easy-opencode.jsonc` is a single JSON object with these top-level keys.
 
@@ -139,25 +142,25 @@ Project config overrides user config.
 - LSP: `lsp_hover`, `lsp_goto_definition`, `lsp_find_references`, `lsp_document_symbols`, `lsp_workspace_symbols`, `lsp_diagnostics`, `lsp_servers`, `lsp_prepare_rename`, `lsp_rename`, `lsp_code_actions`, `lsp_code_action_resolve`
 - AST-grep: `ast_grep_search`, `ast_grep_replace`
 
-## Verify
-
-- 플러그인 로드 확인: OpenCode에서 `lsp_servers`를 호출해 서버 목록이 나오는지 확인
-- CLI dry-run 확인: `npx @j-token/easy-opencode --dry-run --on-conflict keep`
-- CLI 반영 확인: `npx @j-token/easy-opencode --on-conflict keep` 실행 후 `~/.config/opencode/opencode.jsonc`(우선) 또는 `~/.config/opencode/opencode.json`의 `provider.openai` / `provider["google-ai"]`가 변경됐는지 확인
-
 ## CLI (provider sync)
 
-`npx @j-token/easy-opencode`를 실행하면 `~/.config/opencode/opencode.jsonc`(우선) 또는 `~/.config/opencode/opencode.json`에 내장된 provider 프리셋을 병합합니다.
+Running `npx @j-token/easy-opencode` merges built-in provider presets into `~/.config/opencode/opencode.jsonc` (preferred) or `~/.config/opencode/opencode.json`.
 
-- 지원 providerId: `provider.openai`, `provider["google-ai"]`
-- 충돌은 providerId 단위로 1회만 물어보고, 내부는 deep merge + 충돌 키만 overwrite/keep 합니다.
+- Supported providerId: `provider.openai`, `provider["google-ai"]`
+- On conflicts, it asks once per providerId, then deep-merges and only overwrites/keeps the conflicting keys.
 
-옵션:
-- `--dry-run`: 파일을 수정하지 않고 요약만 출력
-- `--on-conflict ask|overwrite|keep`: 기본 `ask`
-- `--no-backup`: 백업 생성 생략(기본은 백업 생성)
+Options:
+- `--dry-run`: print a summary without modifying files
+- `--on-conflict ask|overwrite|keep`: default `ask`
+- `--no-backup`: skip creating a backup (default is to create a backup)
+
+## Verify
+
+- Plugin load: in OpenCode, call `lsp_servers` and confirm a server list is shown
+- CLI dry-run: `npx @j-token/easy-opencode --dry-run --on-conflict keep`
+- CLI apply: run `npx @j-token/easy-opencode --on-conflict keep`, then confirm `provider.openai` / `provider["google-ai"]` changed in `~/.config/opencode/opencode.jsonc` (preferred) or `~/.config/opencode/opencode.json`
 
 ## Safety
 
-- `lsp_rename`과 `lsp_code_action_resolve`는 편집을 즉시 적용합니다(실제 파일 변경).
-- WorkspaceEdit의 `create/rename/delete`는 기본값이 허용(true)이며, 필요하면 `easy-opencode.jsonc`의 `apply`로 제한할 수 있습니다.
+- `lsp_rename` and `lsp_code_action_resolve` apply edits immediately (files are modified).
+- WorkspaceEdit `create/rename/delete` and `allowOutsideWorkspace` are allowed by default (`true`); restrict them via `apply` in `easy-opencode.jsonc`.
