@@ -1,0 +1,12 @@
+#!/usr/bin/env node
+
+/**
+ * npx 진입점
+ * - 번들러가 shebang을 제거하는 경우를 대비해 wrapper를 둔다.
+ */
+
+import("../dist/cli/index.js").catch((e) => {
+  // eslint-disable-next-line no-console
+  console.error(e)
+  process.exit(1)
+})
