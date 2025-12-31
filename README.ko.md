@@ -164,3 +164,35 @@ bun add @j-token/easy-opencode
 
 - `lsp_rename`, `lsp_code_action_resolve`는 편집을 즉시 적용합니다(실제 파일 변경).
 - WorkspaceEdit의 `create/rename/delete` 및 `allowOutsideWorkspace`는 기본값이 허용(`true`)입니다. 제한하려면 `easy-opencode.jsonc`의 `apply` 설정을 사용하세요.
+
+## 알려진 문제
+
+### Bun + @ast-grep/napi Segmentation Fault
+
+Bun 런타임에서 `@ast-grep/napi`(Rust로 작성된 네이티브 NAPI 모듈)를 로딩할 때 **Segmentation Fault** 크래시가 발생할 수 있습니다:
+
+```
+panic: Segmentation fault at address 0x4EAEC1E0180
+oh no: Bun has crashed. This indicates a bug in Bun, not your code.
+```
+
+**원인**: Bun의 NAPI 호환성이 100% 완벽하지 않아 네이티브 모듈에서 메모리 접근 오류가 발생할 수 있습니다.
+
+**해결**: 플러그인이 자동으로 Bun 런타임을 감지하여 NAPI 로딩을 건너뛰고 CLI 모드로 전환합니다. 그래도 문제가 발생하면:
+
+1. `sg` (ast-grep CLI)가 설치되어 있고 `PATH`에서 실행 가능한지 확인하세요:
+   ```bash
+   # ast-grep CLI 설치
+   npm install -g @ast-grep/cli
+   # 또는
+   cargo install ast-grep
+   ```
+
+2. 설정에서 NAPI를 명시적으로 비활성화할 수 있습니다:
+   ```jsonc
+   {
+     "astGrep": {
+       "preferNapi": false
+     }
+   }
+   ```

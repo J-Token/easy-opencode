@@ -164,3 +164,35 @@ Options:
 
 - `lsp_rename` and `lsp_code_action_resolve` apply edits immediately (files are modified).
 - WorkspaceEdit `create/rename/delete` and `allowOutsideWorkspace` are allowed by default (`true`); restrict them via `apply` in `easy-opencode.jsonc`.
+
+## Known Issues
+
+### Bun + @ast-grep/napi Segmentation Fault
+
+When running in Bun runtime, loading `@ast-grep/napi` (a native NAPI module written in Rust) may cause a **Segmentation Fault** crash:
+
+```
+panic: Segmentation fault at address 0x4EAEC1E0180
+oh no: Bun has crashed. This indicates a bug in Bun, not your code.
+```
+
+**Cause**: Bun's NAPI compatibility is not 100% complete, and native modules can trigger memory access errors.
+
+**Solution**: The plugin automatically detects Bun runtime and skips NAPI loading, falling back to CLI mode instead. If you still encounter issues:
+
+1. Ensure `sg` (ast-grep CLI) is installed and available in your `PATH`:
+   ```bash
+   # Install ast-grep CLI
+   npm install -g @ast-grep/cli
+   # or
+   cargo install ast-grep
+   ```
+
+2. Optionally disable NAPI explicitly in your config:
+   ```jsonc
+   {
+     "astGrep": {
+       "preferNapi": false
+     }
+   }
+   ```
