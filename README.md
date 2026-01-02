@@ -14,16 +14,16 @@ You can merge the built-in provider presets into your OpenCode config **without 
 
 ```bash
 # Preview only (no file changes)
-npx @j-token/easy-opencode --dry-run --on-conflict keep
+npx @j-token/easy-opencode@latest --dry-run --on-conflict keep
 
 # Apply changes
-npx @j-token/easy-opencode --on-conflict keep
+npx @j-token/easy-opencode@latest --on-conflict keep
 ```
 
 You can also install it globally and run the binary directly.
 
 ```bash
-npm i -g @j-token/easy-opencode
+npm i -g @j-token/easy-opencode@latest
 easy-opencode --on-conflict keep
 ```
 
@@ -33,7 +33,7 @@ easy-opencode --on-conflict keep
 
 ```bash
 cd ~/.config/opencode
-bun add @j-token/easy-opencode
+bun add @j-token/easy-opencode@latest
 ```
 
 2. Enable the plugin in `~/.config/opencode/opencode.json`:
