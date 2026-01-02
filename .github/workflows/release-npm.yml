@@ -13,6 +13,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # 한국어 주석: 릴리즈 태그 기준으로 체크아웃하여 package.json 버전 검증이 정확히 동작하도록 한다.
+          ref: ${{ github.event.release.tag_name }}
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -34,9 +38,12 @@ jobs:
         run: |
           set -euo pipefail
           PKG_VERSION="$(node -p "require('./package.json').version")"
+          # 한국어 주석: 관례적으로 태그에 붙는 v 접두사는 허용한다(예: v0.2.0).
+          NORMALIZED_TAG="${RELEASE_TAG#v}"
           echo "release tag: $RELEASE_TAG"
+          echo "normalized tag: $NORMALIZED_TAG"
           echo "package.json version: $PKG_VERSION"
-          if [ "$RELEASE_TAG" != "$PKG_VERSION" ]; then
+          if [ "$NORMALIZED_TAG" != "$PKG_VERSION" ]; then
             echo "Error: tag ($RELEASE_TAG) does not match package.json version ($PKG_VERSION)"
             exit 1
           fi
