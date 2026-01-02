@@ -51,7 +51,6 @@ export const easyOpencodeConfigSchema = z.object({
     .object({
       preferNapi: z.boolean().default(true),
       defaultDryRun: z.boolean().default(true),
-
       timeoutMs: z.number().int().positive().default(300_000),
       maxOutputBytes: z.number().int().positive().default(1 * 1024 * 1024),
       maxMatches: z.number().int().positive().default(500),

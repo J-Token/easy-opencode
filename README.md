@@ -1,19 +1,42 @@
 # @j-token/easy-opencode
 
+Simple is best.
+
 OpenCode plugin providing **11 LSP tools** + **2 AST-grep tools**.
 
-No agent orchestration, no background tasks.
+No agent orchestration, no additional background tasks.
 
 ## Install
 
-1) Add to OpenCode package dependencies:
+### 1) Run via `npx` (CLI: provider preset sync)
+
+You can merge the built-in provider presets into your OpenCode config **without installing the plugin**.
+
+```bash
+# Preview only (no file changes)
+npx @j-token/easy-opencode --dry-run --on-conflict keep
+
+# Apply changes
+npx @j-token/easy-opencode --on-conflict keep
+```
+
+You can also install it globally and run the binary directly.
+
+```bash
+npm i -g @j-token/easy-opencode
+easy-opencode --on-conflict keep
+```
+
+### 2) Install the plugin (OpenCode tools: LSP/AST-grep)
+
+1. Add to OpenCode package dependencies:
 
 ```bash
 cd ~/.config/opencode
 bun add @j-token/easy-opencode
 ```
 
-2) Enable the plugin in `~/.config/opencode/opencode.json`:
+2. Enable the plugin in `~/.config/opencode/opencode.json`:
 
 ```json
 {
@@ -144,9 +167,46 @@ Project config overrides user config.
 
 ## CLI (provider sync)
 
-Running `npx @j-token/easy-opencode` merges built-in provider presets into `~/.config/opencode/opencode.jsonc` (preferred) or `~/.config/opencode/opencode.json`.
+Running `npx @j-token/easy-opencode` (or `easy-opencode` if installed globally) merges built-in provider presets into `~/.config/opencode/opencode.jsonc` (preferred) or `~/.config/opencode/opencode.json`.
 
 - Supported providerId: `provider.openai`, `provider["google-ai"]`
+
+### Built-in model presets
+
+The CLI also injects the following model keys/names via built-in presets (actual availability depends on your account, keys, and regional policies).
+
+- OpenAI (`provider.openai`)
+  - `gpt-5.2-none`: GPT 5.2 None (OAuth)
+  - `gpt-5.2-low`: GPT 5.2 Low (OAuth)
+  - `gpt-5.2-medium`: GPT 5.2 Medium (OAuth)
+  - `gpt-5.2-high`: GPT 5.2 High (OAuth)
+  - `gpt-5.2-xhigh`: GPT 5.2 Extra High (OAuth)
+  - `gpt-5.2-codex-low`: GPT 5.2 Codex Low (OAuth)
+  - `gpt-5.2-codex-medium`: GPT 5.2 Codex Medium (OAuth)
+  - `gpt-5.2-codex-high`: GPT 5.2 Codex High (OAuth)
+  - `gpt-5.2-codex-xhigh`: GPT 5.2 Codex Extra High (OAuth)
+  - `gpt-5.1-codex-max-low`: GPT 5.1 Codex Max Low (OAuth)
+  - `gpt-5.1-codex-max-medium`: GPT 5.1 Codex Max Medium (OAuth)
+  - `gpt-5.1-codex-max-high`: GPT 5.1 Codex Max High (OAuth)
+  - `gpt-5.1-codex-max-xhigh`: GPT 5.1 Codex Max Extra High (OAuth)
+  - `gpt-5.1-codex-low`: GPT 5.1 Codex Low (OAuth)
+  - `gpt-5.1-codex-medium`: GPT 5.1 Codex Medium (OAuth)
+  - `gpt-5.1-codex-high`: GPT 5.1 Codex High (OAuth)
+  - `gpt-5.1-codex-mini-medium`: GPT 5.1 Codex Mini Medium (OAuth)
+  - `gpt-5.1-codex-mini-high`: GPT 5.1 Codex Mini High (OAuth)
+  - `gpt-5.1-none`: GPT 5.1 None (OAuth)
+  - `gpt-5.1-low`: GPT 5.1 Low (OAuth)
+  - `gpt-5.1-medium`: GPT 5.1 Medium (OAuth)
+  - `gpt-5.1-high`: GPT 5.1 High (OAuth)
+
+- Google AI Studio (`provider["google-ai"]`)
+  - `gemini-3-pro-high`: Gemini 3 Pro High (`models/gemini-3-pro-preview`)
+  - `gemini-3-pro-medium`: Gemini 3 Pro Medium (`models/gemini-3-pro-preview`)
+  - `gemini-3-pro-low`: Gemini 3 Pro Low (`models/gemini-3-pro-preview`)
+  - `gemini-3-flash-high`: Gemini 3 Flash High (`models/gemini-3-flash-preview`)
+  - `gemini-3-flash-medium`: Gemini 3 Flash Medium (`models/gemini-3-flash-preview`)
+  - `gemini-3-flash-low`: Gemini 3 Flash Low (`models/gemini-3-flash-preview`)
+
 - On conflicts, it asks once per providerId, then deep-merges and only overwrites/keeps the conflicting keys.
 
 Options:
