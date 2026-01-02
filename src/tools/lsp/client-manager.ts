@@ -22,6 +22,9 @@ type ServerConfig = EasyOpencodeConfig["lsp"]["servers"][number]
 export function createLspClientManager(config: EasyOpencodeConfig): LspClientManager {
   const clients = new Map<string, LspClient>()
 
+  // 동일 서버 id에 대한 동시 호출로 중복 프로세스가 생성되지 않도록 보호한다.
+  const creatingClients = new Map<string, Promise<LspClient>>()
+
   const serverList = config.lsp.servers
 
   const projectDir = resolve(process.cwd())
@@ -40,17 +43,36 @@ export function createLspClientManager(config: EasyOpencodeConfig): LspClientMan
         return existing
       }
 
-      const client = new LspClient({
-        serverId: server.id,
-        command: server.command,
-        args: server.args ?? [],
-        env: server.env,
-        projectDir,
-      })
+      const inflight = creatingClients.get(server.id)
+      if (inflight) {
+        return await inflight
+      }
 
-      clients.set(server.id, client)
-      await client.ensureStarted()
-      return client
+      const creating = (async () => {
+        const client = new LspClient({
+          serverId: server.id,
+          command: server.command,
+          args: server.args ?? [],
+          env: server.env,
+          projectDir,
+        })
+
+        clients.set(server.id, client)
+
+        try {
+          await client.ensureStarted()
+          return client
+        } catch (err) {
+          // 시작/초기화 실패 시 캐시에서 제거하여 다음 요청에서 재시도할 수 있게 한다.
+          clients.delete(server.id)
+          throw err
+        } finally {
+          creatingClients.delete(server.id)
+        }
+      })()
+
+      creatingClients.set(server.id, creating)
+      return await creating
     },
 
     describeServers: () => {
