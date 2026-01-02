@@ -2,7 +2,7 @@
 
 Simple is best.
 
-OpenCode plugin providing **11 LSP tools** + **2 AST-grep tools**.
+OpenCode plugin providing **11 LSP tools** + **2 AST-grep tools**+ **Open AI** + **google AI Studio**.
 
 No agent orchestration, no additional background tasks.
 
