@@ -14,16 +14,16 @@ OpenCode 플러그인으로, **LSP 도구 11개** + **AST-grep 도구 2개** + *
 
 ```bash
 # 변경 요약만 보고 싶을 때(파일 미수정)
-npx @j-token/easy-opencode --dry-run --on-conflict keep
+npx @j-token/easy-opencode@latest --dry-run --on-conflict keep
 
 # 실제 반영
-npx @j-token/easy-opencode --on-conflict keep
+npx @j-token/easy-opencode@latest --on-conflict keep
 ```
 
 전역 설치로도 사용할 수 있습니다.
 
 ```bash
-npm i -g @j-token/easy-opencode
+npm i -g @j-token/easy-opencode@latest
 easy-opencode --on-conflict keep
 ```
 
@@ -33,7 +33,7 @@ easy-opencode --on-conflict keep
 
 ```bash
 cd ~/.config/opencode
-bun add @j-token/easy-opencode
+bun add @j-token/easy-opencode@latest
 ```
 
 2. `~/.config/opencode/opencode.json`에서 플러그인 활성화:
