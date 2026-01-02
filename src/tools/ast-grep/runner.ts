@@ -26,6 +26,14 @@ type CommonArgs = {
   timeoutMs: number
 }
 
+/**
+ * Bun 런타임 환경인지 확인한다.
+ * Bun에서는 NAPI 모듈 로딩 시 Segmentation Fault가 발생할 수 있으므로 감지가 필요하다.
+ */
+function isBunRuntime(): boolean {
+  return typeof Bun !== "undefined" || !!(process as any).versions?.bun
+}
+
 type SearchArgs = CommonArgs & {
   context?: number
 }
@@ -37,11 +45,12 @@ type ReplaceArgs = CommonArgs & {
 
 /**
  * AST-grep 검색을 실행한다.
- * - NAPI 우선
+ * - NAPI 우선 (단, Bun 환경에서는 NAPI 사용 안함 - segfault 방지)
  * - 실패하면 CLI fallback
  */
 export async function runAstGrepSearch(args: SearchArgs): Promise<AstGrepSearchResult> {
-  if (args.preferNapi) {
+  // Bun 런타임에서는 @ast-grep/napi 로딩 시 Segmentation Fault가 발생하므로 CLI만 사용
+  if (args.preferNapi && !isBunRuntime()) {
     try {
       return await runViaNapiSearch(args)
     } catch {
@@ -54,11 +63,12 @@ export async function runAstGrepSearch(args: SearchArgs): Promise<AstGrepSearchR
 
 /**
  * AST-grep 치환을 실행한다.
- * - NAPI 우선
+ * - NAPI 우선 (단, Bun 환경에서는 NAPI 사용 안함 - segfault 방지)
  * - 실패하면 CLI fallback
  */
 export async function runAstGrepReplace(args: ReplaceArgs): Promise<AstGrepReplaceResult> {
-  if (args.preferNapi) {
+  // Bun 런타임에서는 @ast-grep/napi 로딩 시 Segmentation Fault가 발생하므로 CLI만 사용
+  if (args.preferNapi && !isBunRuntime()) {
     try {
       return await runViaNapiReplace(args)
     } catch {

@@ -4,8 +4,9 @@
  * - npx CLI에서 ~/.config/opencode/opencode.json(c)의 provider에 병합한다.
  */
 export const PROVIDER_PRESET: {
-  openai: unknown;
-  "google-ai": unknown;
+  openai: unknown
+  "google-ai": unknown
+  anthropic: unknown
 } = {
   openai: {
     options: {
@@ -318,4 +319,22 @@ export const PROVIDER_PRESET: {
       },
     },
   },
-};
+  // Anthropic 프로바이더 - Claude 모델 설정
+  anthropic: {
+    npm: "@ai-sdk/anthropic",
+    name: "Anthropic",
+    models: {
+      // Claude Opus 4.5 - Extended Thinking 활성화 (high effort)
+      "claude-opus-4-5-high": {
+        id: "claude-opus-4-5-20251101",
+        name: "Claude Opus 4.5 high",
+        limit: { context: 200000, output: 32000 },
+        modalities: { input: ["text", "image"], output: ["text"] },
+        options: {
+          effort: "high",
+          thinking: { type: "enabled", budgetTokens: 50000 },
+        },
+      },
+    },
+  },
+}

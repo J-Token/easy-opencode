@@ -4,7 +4,6 @@ Simple is best.
 
 OpenCode plugin providing **11 LSP tools** + **2 AST-grep tools**.
 
-
 No agent orchestration, no additional background tasks.
 
 ## Install
@@ -59,7 +58,6 @@ Project config overrides user config.
 `easy-opencode.jsonc` is a single JSON object with these top-level keys.
 
 - `limits` (optional)
-
   - `timeoutMs` (number, default `300000`): tool timeout in ms
   - `maxReferences` (number, default `200`): max results for `lsp_find_references`
   - `maxSymbols` (number, default `200`): max results for symbol tools
@@ -67,14 +65,12 @@ Project config overrides user config.
   - `maxOutputBytes` (number, default `1048576`): output cap per tool
 
 - `apply` (optional)
-
   - `allowCreate` (boolean, default `true`): allow LSP WorkspaceEdit create
   - `allowRename` (boolean, default `true`): allow LSP WorkspaceEdit rename
   - `allowDelete` (boolean, default `true`): allow LSP WorkspaceEdit delete
   - `allowOutsideWorkspace` (boolean, default `true`): allow edits outside workspace
 
 - `lsp` (optional)
-
   - `servers` (array)
     - each item:
       - `id` (string): server id
@@ -153,15 +149,12 @@ Project config overrides user config.
 ### LSP Server Install Examples
 
 - TypeScript/JavaScript (`typescript-language-server`)
-
   - `npm install -g typescript typescript-language-server`
 
 - Python (`pylsp`)
-
   - `python -m pip install "python-lsp-server[all]"`
 
 - Go (`gopls`)
-
   - `go install golang.org/x/tools/gopls@latest`
 
 - Rust (`rust-analyzer`)
@@ -183,7 +176,6 @@ Running `npx @j-token/easy-opencode` (or `easy-opencode` if installed globally) 
 The CLI also injects the following model keys/names via built-in presets (actual availability depends on your account, keys, and regional policies).
 
 - OpenAI (`provider.openai`)
-
   - `gpt-5.2-none`: GPT 5.2 None (OAuth)
   - `gpt-5.2-low`: GPT 5.2 Low (OAuth)
   - `gpt-5.2-medium`: GPT 5.2 Medium (OAuth)
@@ -208,7 +200,6 @@ The CLI also injects the following model keys/names via built-in presets (actual
   - `gpt-5.1-high`: GPT 5.1 High (OAuth)
 
 - Google AI Studio (`provider["google-ai"]`)
-
   - `gemini-3-pro-high`: Gemini 3 Pro High (`models/gemini-3-pro-preview`)
   - `gemini-3-pro-medium`: Gemini 3 Pro Medium (`models/gemini-3-pro-preview`)
   - `gemini-3-pro-low`: Gemini 3 Pro Low (`models/gemini-3-pro-preview`)
@@ -219,7 +210,6 @@ The CLI also injects the following model keys/names via built-in presets (actual
 - On conflicts, it asks once per providerId, then deep-merges and only overwrites/keeps the conflicting keys.
 
 Options:
-
 - `--dry-run`: print a summary without modifying files
 - `--on-conflict ask|overwrite|keep`: default `ask`
 - `--no-backup`: skip creating a backup (default is to create a backup)
@@ -234,3 +224,35 @@ Options:
 
 - `lsp_rename` and `lsp_code_action_resolve` apply edits immediately (files are modified).
 - WorkspaceEdit `create/rename/delete` and `allowOutsideWorkspace` are allowed by default (`true`); restrict them via `apply` in `easy-opencode.jsonc`.
+
+## Known Issues
+
+### Bun + @ast-grep/napi Segmentation Fault
+
+When running in Bun runtime, loading `@ast-grep/napi` (a native NAPI module written in Rust) may cause a **Segmentation Fault** crash:
+
+```
+panic: Segmentation fault at address 0x4EAEC1E0180
+oh no: Bun has crashed. This indicates a bug in Bun, not your code.
+```
+
+**Cause**: Bun's NAPI compatibility is not 100% complete, and native modules can trigger memory access errors.
+
+**Solution**: The plugin automatically detects Bun runtime and skips NAPI loading, falling back to CLI mode instead. If you still encounter issues:
+
+1. Ensure `sg` (ast-grep CLI) is installed and available in your `PATH`:
+   ```bash
+   # Install ast-grep CLI
+   npm install -g @ast-grep/cli
+   # or
+   cargo install ast-grep
+   ```
+
+2. Optionally disable NAPI explicitly in your config:
+   ```jsonc
+   {
+     "astGrep": {
+       "preferNapi": false
+     }
+   }
+   ```

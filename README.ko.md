@@ -4,7 +4,6 @@
 
 OpenCode 플러그인으로, **LSP 도구 11개** + **AST-grep 도구 2개** + **Open AI** + **google AI Studio** 세팅을 제공합니다.
 
-
 에이전트 오케스트레이션이나 추가적인 백그라운드 작업은 제공하지 않습니다.
 
 ## 설치
@@ -59,7 +58,6 @@ bun add @j-token/easy-opencode
 `easy-opencode.jsonc`는 아래 최상위 키를 가지는 단일 JSON 객체입니다.
 
 - `limits` (선택)
-
   - `timeoutMs` (number, 기본 `300000`): 도구 타임아웃(ms)
   - `maxReferences` (number, 기본 `200`): `lsp_find_references` 최대 결과 수
   - `maxSymbols` (number, 기본 `200`): 심볼 관련 도구 최대 결과 수
@@ -67,14 +65,12 @@ bun add @j-token/easy-opencode
   - `maxOutputBytes` (number, 기본 `1048576`): 도구 출력 최대 바이트
 
 - `apply` (선택)
-
   - `allowCreate` (boolean, 기본 `true`): LSP WorkspaceEdit create 허용
   - `allowRename` (boolean, 기본 `true`): LSP WorkspaceEdit rename 허용
   - `allowDelete` (boolean, 기본 `true`): LSP WorkspaceEdit delete 허용
   - `allowOutsideWorkspace` (boolean, 기본 `true`): 워크스페이스 밖 경로 편집 허용
 
 - `lsp` (선택)
-
   - `servers` (array)
     - 각 항목:
       - `id` (string): 서버 id
@@ -154,15 +150,12 @@ bun add @j-token/easy-opencode
 ### LSP 서버 설치 예시
 
 - TypeScript/JavaScript (`typescript-language-server`)
-
   - `npm install -g typescript typescript-language-server`
 
 - Python (`pylsp`)
-
   - `python -m pip install "python-lsp-server[all]"`
 
 - Go (`gopls`)
-
   - `go install golang.org/x/tools/gopls@latest`
 
 - Rust (`rust-analyzer`)
@@ -184,7 +177,6 @@ bun add @j-token/easy-opencode
 아래 모델 키/이름을 내장 프리셋으로 추가합니다(실제 사용 가능 여부는 계정/키/지역 정책에 따라 달라질 수 있습니다).
 
 - OpenAI (`provider.openai`)
-
   - `gpt-5.2-none`: GPT 5.2 None (OAuth)
   - `gpt-5.2-low`: GPT 5.2 Low (OAuth)
   - `gpt-5.2-medium`: GPT 5.2 Medium (OAuth)
@@ -209,7 +201,6 @@ bun add @j-token/easy-opencode
   - `gpt-5.1-high`: GPT 5.1 High (OAuth)
 
 - Google AI Studio (`provider["google-ai"]`)
-
   - `gemini-3-pro-high`: Gemini 3 Pro High (`models/gemini-3-pro-preview`)
   - `gemini-3-pro-medium`: Gemini 3 Pro Medium (`models/gemini-3-pro-preview`)
   - `gemini-3-pro-low`: Gemini 3 Pro Low (`models/gemini-3-pro-preview`)
@@ -220,7 +211,6 @@ bun add @j-token/easy-opencode
 - 충돌은 `providerId` 단위로 한 번만 물어보고, 내부는 딥 머지로 처리한 뒤 충돌이 난 키만 `overwrite`/`keep`로 처리합니다.
 
 옵션:
-
 - `--dry-run`: 파일을 수정하지 않고 요약만 출력
 - `--on-conflict ask|overwrite|keep`: 기본 `ask`
 - `--no-backup`: 백업 생성 생략(기본은 백업 생성)
@@ -235,3 +225,35 @@ bun add @j-token/easy-opencode
 
 - `lsp_rename`, `lsp_code_action_resolve`는 편집을 즉시 적용합니다(실제 파일 변경).
 - WorkspaceEdit의 `create/rename/delete` 및 `allowOutsideWorkspace`는 기본값이 허용(`true`)입니다. 제한하려면 `easy-opencode.jsonc`의 `apply` 설정을 사용하세요.
+
+## 알려진 문제
+
+### Bun + @ast-grep/napi Segmentation Fault
+
+Bun 런타임에서 `@ast-grep/napi`(Rust로 작성된 네이티브 NAPI 모듈)를 로딩할 때 **Segmentation Fault** 크래시가 발생할 수 있습니다:
+
+```
+panic: Segmentation fault at address 0x4EAEC1E0180
+oh no: Bun has crashed. This indicates a bug in Bun, not your code.
+```
+
+**원인**: Bun의 NAPI 호환성이 100% 완벽하지 않아 네이티브 모듈에서 메모리 접근 오류가 발생할 수 있습니다.
+
+**해결**: 플러그인이 자동으로 Bun 런타임을 감지하여 NAPI 로딩을 건너뛰고 CLI 모드로 전환합니다. 그래도 문제가 발생하면:
+
+1. `sg` (ast-grep CLI)가 설치되어 있고 `PATH`에서 실행 가능한지 확인하세요:
+   ```bash
+   # ast-grep CLI 설치
+   npm install -g @ast-grep/cli
+   # 또는
+   cargo install ast-grep
+   ```
+
+2. 설정에서 NAPI를 명시적으로 비활성화할 수 있습니다:
+   ```jsonc
+   {
+     "astGrep": {
+       "preferNapi": false
+     }
+   }
+   ```
