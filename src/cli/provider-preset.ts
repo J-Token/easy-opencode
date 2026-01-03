@@ -4,9 +4,9 @@
  * - npx CLI에서 ~/.config/opencode/opencode.json(c)의 provider에 병합한다.
  */
 export const PROVIDER_PRESET: {
-  openai: unknown
-  "google-ai": unknown
-  anthropic: unknown
+  openai: unknown;
+  google: unknown;
+  anthropic: unknown;
 } = {
   openai: {
     options: {
@@ -283,37 +283,35 @@ export const PROVIDER_PRESET: {
       },
     },
   },
-  "google-ai": {
-    npm: "@ai-sdk/google",
-    name: "Google AI Studio",
+  google: {
     models: {
       "gemini-3-pro-high": {
-        id: "models/gemini-3-pro-preview",
+        id: "gemini-3-pro-preview",
         name: "Gemini 3 Pro High",
         options: { thinkingLevel: "high", includeThoughts: true },
       },
       "gemini-3-pro-medium": {
-        id: "models/gemini-3-pro-preview",
+        id: "gemini-3-pro-preview",
         name: "Gemini 3 Pro Medium",
         options: { thinkingLevel: "medium", includeThoughts: true },
       },
       "gemini-3-pro-low": {
-        id: "models/gemini-3-pro-preview",
+        id: "gemini-3-pro-preview",
         name: "Gemini 3 Pro Low",
         options: { thinkingLevel: "low", includeThoughts: true },
       },
       "gemini-3-flash-high": {
-        id: "models/gemini-3-flash-preview",
+        id: "gemini-3-flash-preview",
         name: "Gemini 3 Flash High",
         options: { thinkingLevel: "high", includeThoughts: true },
       },
       "gemini-3-flash-medium": {
-        id: "models/gemini-3-flash-preview",
+        id: "gemini-3-flash-preview",
         name: "Gemini 3 Flash Medium",
         options: { thinkingLevel: "medium", includeThoughts: true },
       },
       "gemini-3-flash-low": {
-        id: "models/gemini-3-flash-preview",
+        id: "gemini-3-flash-preview",
         name: "Gemini 3 Flash Low",
         options: { thinkingLevel: "low", includeThoughts: true },
       },
@@ -337,4 +335,4 @@ export const PROVIDER_PRESET: {
       },
     },
   },
-}
+};
