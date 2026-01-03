@@ -7,7 +7,7 @@
 import { confirm } from "@clack/prompts"
 import pc from "picocolors"
 
-import { mergeProviderId } from "./merge-provider"
+import { mergeProviderId, summarizeProviderDiff, type ConflictMode } from "./merge-provider"
 import { writeProviderId } from "./opencode-config"
 
 /**
@@ -38,6 +38,17 @@ export type MigrationResult = {
   googleAiDeleted: boolean
   /** 업데이트된 raw JSON 문자열 */
   updatedRaw: string
+}
+
+/**
+ * 마이그레이션 확인(prompt) 옵션
+ */
+export type MigrationPromptOptions = {
+  /**
+   * non-TTY 환경에서 자동 진행 여부를 판단하는 기준값
+   * - `overwrite|keep`이면 자동으로 진행 가능(=사용자가 비대화형 의도를 명시)
+   */
+  onConflict?: "ask" | "overwrite" | "keep"
 }
 
 /**
@@ -73,14 +84,39 @@ export function checkMigrationNeeded(provider: Record<string, unknown>): Migrati
 
 /**
  * 사용자에게 마이그레이션 확인을 요청한다.
- * - TTY가 아니면 에러를 발생시킨다.
+ * - TTY 환경에서는 사용자에게 확인을 받는다.
+ * - non-TTY 환경에서는 안전/명시 옵션 기준으로 자동 진행한다.
+ *   - google이 없으면 충돌이 없으므로 자동 진행
+ *   - google이 있어도 실제 충돌이 없으면 자동 진행(추가만 발생)
+ *   - 실제 충돌이 있으면 `--on-conflict overwrite|keep`가 필요
  * @param checkResult - 마이그레이션 체크 결과
- * @returns 사용자가 확인했으면 true, 취소했으면 false
+ * @param options - 프롬프트 동작 옵션
+ * @returns 진행하면 true, 취소/불가하면 false(또는 에러)
  */
-export async function promptMigration(checkResult: MigrationCheckResult): Promise<boolean> {
-  // non-TTY 환경에서는 대화형 진행이 불가능하다
+export async function promptMigration(
+  checkResult: MigrationCheckResult,
+  options: MigrationPromptOptions = {}
+): Promise<boolean> {
+  // non-TTY 환경에서는 대화형 진행이 불가능하다.
   if (!process.stdin.isTTY) {
-    throw new Error("Non-interactive terminal: migration requires user confirmation")
+    // google이 없으면 충돌 없이 옮길 수 있으므로 자동 진행한다.
+    if (!checkResult.hasGoogle) {
+      return true
+    }
+
+    // google도 있으면 충돌 가능성이 있으므로, 실제 충돌 여부를 먼저 판단한다.
+    // - 충돌이 없으면(추가만 발생) 프리셋 병합과 동일하게 자동 진행해도 안전하다.
+    const diff = summarizeProviderDiff(checkResult.googleValue, checkResult.googleAiValue)
+    if (diff.conflictCount === 0) {
+      return true
+    }
+
+    // 충돌이 있으면, 사용자 의도(비대화형)가 명시된 경우만 자동 진행한다.
+    if (options.onConflict === "overwrite" || options.onConflict === "keep") {
+      return true
+    }
+
+    throw new Error("Non-interactive terminal: use --on-conflict overwrite|keep to migrate google-ai when google exists")
   }
 
   const message = checkResult.hasGoogle
@@ -137,10 +173,12 @@ export async function executeMigration(args: {
   raw: string
   /** 마이그레이션 체크 결과 */
   checkResult: MigrationCheckResult
+  /** google와 google-ai가 동시에 있을 때의 충돌 처리 방식 */
+  mode?: ConflictMode
   /** dry-run 모드 여부 */
   dryRun: boolean
 }): Promise<MigrationResult> {
-  const { path, raw, checkResult, dryRun } = args
+  const { path, raw, checkResult, dryRun, mode = "keep" } = args
   const { hasGoogle, googleAiValue, googleValue } = checkResult
 
   // 병합된 값 계산
@@ -149,9 +187,9 @@ export async function executeMigration(args: {
   let mergedValue: unknown
 
   if (hasGoogle) {
-    // 둘 다 있는 경우: google 값 우선으로 병합 ("keep" 모드)
-    // google 값을 기준으로 google-ai의 고유 키만 추가
-    mergedValue = mergeProviderId(googleValue, googleAiValue, "keep")
+    // 둘 다 있는 경우: google을 기준(target)으로 google-ai를 병합(preset)한다.
+    // - 기본은 keep(google 우선) 이지만, mode로 overwrite/keep을 제어할 수 있다.
+    mergedValue = mergeProviderId(googleValue, googleAiValue, mode)
   } else {
     // google-ai만 있는 경우: google-ai 값을 그대로 사용
     mergedValue = googleAiValue
@@ -229,11 +267,13 @@ export function formatMigrationMessage(result: MigrationResult): string {
  * - 이를 통해 이후 프리셋 diff 계산이 정확해진다.
  * @param provider - 원본 provider 객체
  * @param checkResult - 마이그레이션 체크 결과
+ * @param mode - google와 google-ai가 동시에 있을 때의 충돌 처리 방식
  * @returns 마이그레이션 후 provider 객체 (시뮬레이션)
  */
 export function simulateMigration(
   provider: Record<string, unknown>,
-  checkResult: MigrationCheckResult
+  checkResult: MigrationCheckResult,
+  mode: ConflictMode = "keep"
 ): Record<string, unknown> {
   const { hasGoogle, googleAiValue, googleValue } = checkResult
 
@@ -241,8 +281,9 @@ export function simulateMigration(
   let mergedValue: unknown
 
   if (hasGoogle) {
-    // 둘 다 있는 경우: google 값 우선으로 병합
-    mergedValue = mergeProviderId(googleValue, googleAiValue, "keep")
+    // 둘 다 있는 경우: google을 기준(target)으로 google-ai를 병합(preset)한다.
+    // - 기본은 keep(google 우선) 이지만, mode로 overwrite/keep을 제어할 수 있다.
+    mergedValue = mergeProviderId(googleValue, googleAiValue, mode)
   } else {
     // google-ai만 있는 경우: google-ai 값을 그대로 사용
     mergedValue = googleAiValue

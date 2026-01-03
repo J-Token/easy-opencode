@@ -47,6 +47,11 @@ async function main(): Promise<void> {
   let currentRaw = raw
   const migrationCheck = checkMigrationNeeded(provider)
 
+  // google와 google-ai가 동시에 있을 때의 마이그레이션 병합 정책
+  // - 기본은 keep(google 우선)
+  // - 사용자가 --on-conflict overwrite를 지정한 경우에만 overwrite로 동작
+  const migrationMode: ConflictMode = args.onConflict === "overwrite" ? "overwrite" : "keep"
+
   // 마이그레이션이 필요하거나 프리셋 병합이 필요한 경우 백업 생성
   // 백업은 모든 변경 전에 먼저 수행 (마이그레이션 전 원본 상태 보존)
   let backupPath: string | null = null
@@ -57,7 +62,7 @@ async function main(): Promise<void> {
 
   if (migrationCheck.needed) {
     // 마이그레이션 필요: 사용자 확인
-    const confirmed = await promptMigration(migrationCheck)
+    const confirmed = await promptMigration(migrationCheck, { onConflict: args.onConflict })
 
     if (confirmed) {
       // dry-run 모드: 마이그레이션 후 상태를 시뮬레이션
@@ -68,13 +73,14 @@ async function main(): Promise<void> {
         )
         // dry-run에서도 provider 상태를 마이그레이션 후 상태로 시뮬레이션
         // 이를 통해 이후 프리셋 diff 계산이 정확해짐
-        provider = simulateMigration(provider, migrationCheck)
+        provider = simulateMigration(provider, migrationCheck, migrationMode)
       } else {
         // 실제 마이그레이션 실행
         const migrationResult = await executeMigration({
           path,
           raw: currentRaw,
           checkResult: migrationCheck,
+          mode: migrationMode,
           dryRun: false,
         })
 
@@ -223,7 +229,7 @@ function printHelp(): void {
     "",
     "Options:",
     "  --dry-run          변경 요약만 출력하고 파일은 수정하지 않습니다.",
-    "  --on-conflict <m>   ask|overwrite|keep (기본 ask)",
+    "  --on-conflict <m>   ask|overwrite|keep (기본 ask, non-TTY에서 충돌 시 overwrite|keep 필요)",
     "  --no-backup         백업 파일을 생성하지 않습니다.",
     "  -h, --help          도움말 출력",
     "",

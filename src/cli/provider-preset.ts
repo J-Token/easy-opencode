@@ -286,32 +286,32 @@ export const PROVIDER_PRESET: {
   google: {
     models: {
       "gemini-3-pro-high": {
-        id: "gemini-3-pro-preview",
+        id: "models/gemini-3-pro-preview",
         name: "Gemini 3 Pro High",
         options: { thinkingLevel: "high", includeThoughts: true },
       },
       "gemini-3-pro-medium": {
-        id: "gemini-3-pro-preview",
+        id: "models/gemini-3-pro-preview",
         name: "Gemini 3 Pro Medium",
         options: { thinkingLevel: "medium", includeThoughts: true },
       },
       "gemini-3-pro-low": {
-        id: "gemini-3-pro-preview",
+        id: "models/gemini-3-pro-preview",
         name: "Gemini 3 Pro Low",
         options: { thinkingLevel: "low", includeThoughts: true },
       },
       "gemini-3-flash-high": {
-        id: "gemini-3-flash-preview",
+        id: "models/gemini-3-flash-preview",
         name: "Gemini 3 Flash High",
         options: { thinkingLevel: "high", includeThoughts: true },
       },
       "gemini-3-flash-medium": {
-        id: "gemini-3-flash-preview",
+        id: "models/gemini-3-flash-preview",
         name: "Gemini 3 Flash Medium",
         options: { thinkingLevel: "medium", includeThoughts: true },
       },
       "gemini-3-flash-low": {
-        id: "gemini-3-flash-preview",
+        id: "models/gemini-3-flash-preview",
         name: "Gemini 3 Flash Low",
         options: { thinkingLevel: "low", includeThoughts: true },
       },
