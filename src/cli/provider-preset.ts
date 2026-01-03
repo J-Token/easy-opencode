@@ -1,12 +1,12 @@
 /**
  * easy-opencode 내장 provider 프리셋
- * - 대상: provider.openai / provider["google-ai"]
+ * - 대상: provider.openai / provider.google
  * - npx CLI에서 ~/.config/opencode/opencode.json(c)의 provider에 병합한다.
  */
 export const PROVIDER_PRESET: {
-  openai: unknown
-  "google-ai": unknown
-  anthropic: unknown
+  openai: unknown;
+  google: unknown;
+  anthropic: unknown;
 } = {
   openai: {
     options: {
@@ -283,9 +283,7 @@ export const PROVIDER_PRESET: {
       },
     },
   },
-  "google-ai": {
-    npm: "@ai-sdk/google",
-    name: "Google AI Studio",
+  google: {
     models: {
       "gemini-3-pro-high": {
         id: "models/gemini-3-pro-preview",
@@ -337,4 +335,4 @@ export const PROVIDER_PRESET: {
       },
     },
   },
-}
+};

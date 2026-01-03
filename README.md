@@ -169,9 +169,23 @@ Project config overrides user config.
 
 Running `npx @j-token/easy-opencode` (or `easy-opencode` if installed globally) merges built-in provider presets into `~/.config/opencode/opencode.jsonc` (preferred) or `~/.config/opencode/opencode.json`.
 
-- Supported providerId: `provider.openai`, `provider["google-ai"]`
+- Supported providerId: `provider.openai`, `provider.google`
+- Auto-migration: `provider["google-ai"]` → `provider.google` (0.2.3+)
+
+### OpenAI OAuth Support
+
+To use OpenAI OAuth models, you must install the following plugin:
+
+- **Repository**: [opencode-openai-codex-auth](https://github.com/numman-ali/opencode-openai-codex-auth)
+- **Configuration** in `opencode.json`:
+  ```json
+  {
+    "plugin": ["opencode-openai-codex-auth@4.2.0"]
+  }
+  ```
 
 ### Built-in model presets
+
 
 The CLI also injects the following model keys/names via built-in presets (actual availability depends on your account, keys, and regional policies).
 
@@ -199,7 +213,7 @@ The CLI also injects the following model keys/names via built-in presets (actual
   - `gpt-5.1-medium`: GPT 5.1 Medium (OAuth)
   - `gpt-5.1-high`: GPT 5.1 High (OAuth)
 
-- Google AI Studio (`provider["google-ai"]`)
+- Google AI Studio (`provider.google`)
   - `gemini-3-pro-high`: Gemini 3 Pro High (`models/gemini-3-pro-preview`)
   - `gemini-3-pro-medium`: Gemini 3 Pro Medium (`models/gemini-3-pro-preview`)
   - `gemini-3-pro-low`: Gemini 3 Pro Low (`models/gemini-3-pro-preview`)
@@ -218,7 +232,7 @@ Options:
 
 - Plugin load: in OpenCode, call `lsp_servers` and confirm a server list is shown
 - CLI dry-run: `npx @j-token/easy-opencode --dry-run --on-conflict keep`
-- CLI apply: run `npx @j-token/easy-opencode --on-conflict keep`, then confirm `provider.openai` / `provider["google-ai"]` changed in `~/.config/opencode/opencode.jsonc` (preferred) or `~/.config/opencode/opencode.json`
+- CLI apply: run `npx @j-token/easy-opencode --on-conflict keep`, then confirm `provider.openai` / `provider.google` changed in `~/.config/opencode/opencode.jsonc` (preferred) or `~/.config/opencode/opencode.json`
 
 ## Safety
 
