@@ -172,7 +172,20 @@ bun add @j-token/easy-opencode@latest
 
 - 지원 `providerId`: `provider.openai`, `provider["google-ai"]`
 
+### OpenAI OAuth 지원
+
+OpenAI OAuth 모델을 사용하려면 아래 플러그인을 반드시 설치해야 합니다:
+
+- **저장소**: [opencode-openai-codex-auth](https://github.com/numman-ali/opencode-openai-codex-auth)
+- **설정 방법** (`opencode.json`):
+  ```json
+  {
+    "plugin": ["opencode-openai-codex-auth@4.2.0"]
+  }
+  ```
+
 ### 내장 모델 프리셋
+
 
 아래 모델 키/이름을 내장 프리셋으로 추가합니다(실제 사용 가능 여부는 계정/키/지역 정책에 따라 달라질 수 있습니다).
 

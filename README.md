@@ -171,7 +171,20 @@ Running `npx @j-token/easy-opencode` (or `easy-opencode` if installed globally) 
 
 - Supported providerId: `provider.openai`, `provider["google-ai"]`
 
+### OpenAI OAuth Support
+
+To use OpenAI OAuth models, you must install the following plugin:
+
+- **Repository**: [opencode-openai-codex-auth](https://github.com/numman-ali/opencode-openai-codex-auth)
+- **Configuration** in `opencode.json`:
+  ```json
+  {
+    "plugin": ["opencode-openai-codex-auth@4.2.0"]
+  }
+  ```
+
 ### Built-in model presets
+
 
 The CLI also injects the following model keys/names via built-in presets (actual availability depends on your account, keys, and regional policies).
 
