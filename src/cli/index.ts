@@ -12,10 +12,18 @@ import {
   backupOpenCodeConfig,
   writeProviderId,
 } from "./opencode-config"
+import {
+  checkMigrationNeeded,
+  promptMigration,
+  executeMigration,
+  formatMigrationMessage,
+  simulateMigration,
+} from "./migrate-provider"
 
 /**
  * npx @j-token/easy-opencode CLI
- * - ~/.config/opencode/opencode.jsonc(json)에서 provider(openai, google-ai)만 병합한다.
+ * - ~/.config/opencode/opencode.jsonc(json)에서 provider(openai, google)만 병합한다.
+ * - google-ai → google 마이그레이션을 자동으로 수행한다.
  * - 충돌은 providerId 단위로 1회만 묻는다.
  */
 async function main(): Promise<void> {
@@ -33,12 +41,71 @@ async function main(): Promise<void> {
 
   const { raw, data } = await readOpenCodeConfig(path)
 
-  const provider = (data && typeof data === "object" ? (data as any).provider : undefined) ?? {}
+  let provider = (data && typeof data === "object" ? (data as any).provider : undefined) ?? {}
 
-  const providerIds: ProviderId[] = ["openai", "google-ai"]
+  // google-ai → google 마이그레이션 체크 및 실행
+  let currentRaw = raw
+  const migrationCheck = checkMigrationNeeded(provider)
+
+  // 마이그레이션이 필요하거나 프리셋 병합이 필요한 경우 백업 생성
+  // 백업은 모든 변경 전에 먼저 수행 (마이그레이션 전 원본 상태 보존)
+  let backupPath: string | null = null
+  const needsBackup = !args.noBackup && !args.dryRun
+  if (needsBackup) {
+    backupPath = await backupOpenCodeConfig(path)
+  }
+
+  if (migrationCheck.needed) {
+    // 마이그레이션 필요: 사용자 확인
+    const confirmed = await promptMigration(migrationCheck)
+
+    if (confirmed) {
+      // dry-run 모드: 마이그레이션 후 상태를 시뮬레이션
+      if (args.dryRun) {
+        note(
+          `${pc.yellow("google-ai")} → ${pc.green("google")} 마이그레이션 예정`,
+          pc.cyan("dry-run migration")
+        )
+        // dry-run에서도 provider 상태를 마이그레이션 후 상태로 시뮬레이션
+        // 이를 통해 이후 프리셋 diff 계산이 정확해짐
+        provider = simulateMigration(provider, migrationCheck)
+      } else {
+        // 실제 마이그레이션 실행
+        const migrationResult = await executeMigration({
+          path,
+          raw: currentRaw,
+          checkResult: migrationCheck,
+          dryRun: false,
+        })
+
+        currentRaw = migrationResult.updatedRaw
+
+        // 마이그레이션 결과 메시지 표시
+        const migrationMessage = formatMigrationMessage(migrationResult)
+        if (migrationMessage) {
+          note(migrationMessage, pc.green("migration"))
+        }
+
+        // provider 객체 갱신 (마이그레이션 후 상태 반영)
+        const refreshed = await readOpenCodeConfig(path)
+        provider = (refreshed.data && typeof refreshed.data === "object"
+          ? (refreshed.data as any).provider
+          : undefined) ?? {}
+        currentRaw = refreshed.raw
+      }
+    } else {
+      cancel("마이그레이션이 취소되었습니다.")
+      process.exit(1)
+      return
+    }
+  }
+
+  // 프리셋 병합 대상 providerId (마이그레이션 후에는 google 사용)
+  const providerIds: ProviderId[] = ["openai", "google"]
 
   const planned: Array<{ providerId: ProviderId; mode: ConflictMode | "skip"; summary: ReturnType<typeof summarizeProviderDiff> }> = []
 
+  // 각 providerId에 대해 diff 계산 및 충돌 처리 방식 결정
   for (const providerId of providerIds) {
     const presetValue = (PROVIDER_PRESET as any)[providerId]
     const targetValue = provider[providerId]
@@ -67,6 +134,7 @@ async function main(): Promise<void> {
     return
   }
 
+  // dry-run 모드: 요약만 출력하고 종료
   if (args.dryRun) {
     for (const p of toApply) {
       note(formatSummaryLine(p.providerId, p.summary), pc.cyan("dry-run"))
@@ -75,12 +143,7 @@ async function main(): Promise<void> {
     return
   }
 
-  let backupPath: string | null = null
-  if (!args.noBackup) {
-    backupPath = await backupOpenCodeConfig(path)
-  }
-
-  let currentRaw = raw
+  // 프리셋 병합 실행
   for (const p of toApply) {
     const presetValue = (PROVIDER_PRESET as any)[p.providerId]
     const targetValue = provider[p.providerId]
@@ -165,7 +228,8 @@ function printHelp(): void {
     "  -h, --help          도움말 출력",
     "",
     "Scope:",
-    "  - provider.openai / provider.google-ai 만 병합합니다.",
+    "  - provider.openai / provider.google 만 병합합니다.",
+    "  - google-ai → google 자동 마이그레이션을 지원합니다.",
     "  - opencode.jsonc가 있으면 우선 수정합니다.",
   ]
 

@@ -5,7 +5,7 @@
  * - 충돌 키만 overwrite/keep 한다.
  */
 
-export type ProviderId = "openai" | "google-ai"
+export type ProviderId = "openai" | "google"
 
 export type ConflictMode = "overwrite" | "keep"
 

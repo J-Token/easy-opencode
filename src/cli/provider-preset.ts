@@ -1,6 +1,6 @@
 /**
  * easy-opencode 내장 provider 프리셋
- * - 대상: provider.openai / provider["google-ai"]
+ * - 대상: provider.openai / provider.google
  * - npx CLI에서 ~/.config/opencode/opencode.json(c)의 provider에 병합한다.
  */
 export const PROVIDER_PRESET: {
